@@ -44,7 +44,8 @@ init() ->
 
 loop() ->
     receive
-        Msg -> 
-            Msg,
-            loop()
+        {done, EventName, Description} -> 
+            io:format("~p ~p is timeout~n", [EventName, Description]),
+            loop();
+        _ -> loop()
     end.

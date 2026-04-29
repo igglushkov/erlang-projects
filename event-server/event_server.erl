@@ -29,6 +29,22 @@ loop(State) ->
             EventPid = event:start_link(EventId, EventInfo#event_info.timeout),
             From ! {ok, EventPid, EventId},
             loop(NewState);
+        {done, Id} ->
+            case orddict:find(Id, State#state.events) of
+                {ok, #event_info{
+                    client_name = ClientName,
+                    event_name = EventName,
+                    description = Description
+                    }} ->
+                    NewDict = orddict:erase(Id, State#state.events),
+                    NewState = State#state{events = NewDict},
+                    ClientName ! {done, EventName, Description},
+                    loop(NewState);
+                {error} ->
+                    io:format("Got unexpected event id: ~p~n", [Id]),
+                    error
+            end,
+            loop(State);
         {'DOWN', _Ref, process, Pid, Reason} ->
             io:format("Event Server: Client ~p terminated with reason ~p~n", [Pid, Reason]),
             loop(State);
