@@ -1,6 +1,8 @@
 -module(client).
 
--export([start/1, init/0, subscribe/2]).
+-include("include/event_info.hrl").
+
+-export([start/1, init/0, subscribe/2, add/5]).
 
 -define(TIMEOUT, 2000).
 
@@ -20,6 +22,18 @@ subscribe(ClientName, ServerName) ->
             {ok, MonitorRef};
         {error, Reason} ->
             {error, Reason}
+    after ?TIMEOUT ->
+        {error, timeout}
+    end.
+
+add(ClientName, ServerName, EventName, Description, Timeout) ->
+    EventInfo = #event_info{
+        client_name = ClientName, event_name = EventName,
+        description = Description, timeout = Timeout},
+    ServerName ! {add, self(), EventInfo},
+    receive
+        ok -> ok;
+        {error, Reason} -> {error, Reason}
     after ?TIMEOUT ->
         {error, timeout}
     end.
