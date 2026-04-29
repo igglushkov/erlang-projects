@@ -32,7 +32,7 @@ add(ClientName, ServerName, EventName, Description, Timeout) ->
         description = Description, timeout = Timeout},
     ServerName ! {add, self(), EventInfo},
     receive
-        ok -> ok;
+        {ok, EventPid, EventId} -> {ok, EventPid, EventId};
         {error, Reason} -> {error, Reason}
     after ?TIMEOUT ->
         {error, timeout}
