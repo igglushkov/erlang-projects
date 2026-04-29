@@ -1,0 +1,5 @@
+event_server:start().
+client:start(pc).
+client:subscribe(pc, event_server).
+client:subscribe(pc, event_server).
+client:add(pc, event_server, test, "test timer", 3000).
