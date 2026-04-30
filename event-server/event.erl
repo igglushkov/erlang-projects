@@ -1,10 +1,15 @@
 -module(event).
 
--export([start_link/2, notify/3]).
+-export([start_link/2, wait/3]).
 
 start_link(Id, TimeOut) ->
-    Pid = spawn_link(?MODULE, notify, [self(), Id, TimeOut]),
+    Pid = spawn_link(?MODULE, wait, [self(), Id, TimeOut]),
     {Pid, ok}.
 
-notify(ServerPid, Id, TimeOut) ->
-    timer:send_after(TimeOut, ServerPid, {done, Id}).
+wait(ServerPid, Id, TimeOut) ->
+    receive
+        cancel -> ok
+    after TimeOut ->
+        ServerPid ! {done, Id}
+    end.
+    
