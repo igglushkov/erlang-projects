@@ -4,10 +4,13 @@
 
 -export([start/0, init/1]).
 -record(state, {current_id :: integer(), 
-                events_info :: orddict:orddict()}).
+                events_info :: orddict:orddict(),
+                events_procs :: orddict:orrdict()}).
 
 start() ->
-    Pid = spawn(?MODULE, init, [#state{current_id = 0, events_info = orddict:new()}]),
+    Pid = spawn(?MODULE, init, [#state{current_id = 0, 
+                                        events_info = orddict:new(),
+                                        events_procs = orddict:new()}]),
     register(?MODULE, Pid),
     {ok, Pid}.
 
@@ -27,10 +30,12 @@ loop(State) ->
                                     event_name = EventName,
                                     description = Description},
             EventId = State#state.current_id,
-            NewDict = orddict:store(EventId, EventInfo, State#state.events_info),
-            NewState = State#state{current_id = EventId + 1,
-                                    events_info = NewDict},
             EventPid = event:start_link(EventId, Timeout),
+            NewEvInfo = orddict:store(EventId, EventInfo, State#state.events_info),
+            NewEvProcs = orddict:store(EventName, EventPid, State#state.events_procs),
+            NewState = State#state{current_id = EventId + 1,
+                                    events_info = NewEvInfo,
+                                    events_procs = NewEvProcs},
             From ! {ok, EventPid, EventId},
             loop(NewState);
         {done, Id} ->
