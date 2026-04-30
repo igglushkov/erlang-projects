@@ -3,10 +3,11 @@
 -include("include/event_info.hrl").
 
 -export([start/0, init/1]).
--record(state, {current_id :: integer(), events :: orddict:orddict()}).
+-record(state, {current_id :: integer(), 
+                events_info :: orddict:orddict()}).
 
 start() ->
-    Pid = spawn(?MODULE, init, [#state{current_id = 0, events = orddict:new()}]),
+    Pid = spawn(?MODULE, init, [#state{current_id = 0, events_info = orddict:new()}]),
     register(?MODULE, Pid),
     {ok, Pid}.
 
@@ -21,23 +22,26 @@ loop(State) ->
             io:format("event server now monitor procces ~p under ref ~p~n", [ClientName, MonitorRef]),
             From ! ok,
             loop(State);
-        {add, From, EventInfo} ->
+        {add, From, ClientName, EventName, Description, Timeout} ->
+            EventInfo = #event_info{client_name = ClientName,
+                                    event_name = EventName,
+                                    description = Description},
             EventId = State#state.current_id,
-            NewDict = orddict:store(EventId, EventInfo, State#state.events),
+            NewDict = orddict:store(EventId, EventInfo, State#state.events_info),
             NewState = State#state{current_id = EventId + 1,
-                                    events = NewDict},
-            EventPid = event:start_link(EventId, EventInfo#event_info.timeout),
+                                    events_info = NewDict},
+            EventPid = event:start_link(EventId, Timeout),
             From ! {ok, EventPid, EventId},
             loop(NewState);
         {done, Id} ->
-            case orddict:find(Id, State#state.events) of
+            case orddict:find(Id, State#state.events_info) of
                 {ok, #event_info{
                     client_name = ClientName,
                     event_name = EventName,
                     description = Description
                     }} ->
-                    NewDict = orddict:erase(Id, State#state.events),
-                    NewState = State#state{events = NewDict},
+                    NewDict = orddict:erase(Id, State#state.events_info),
+                    NewState = State#state{events_info = NewDict},
                     ClientName ! {done, EventName, Description},
                     loop(NewState);
                 {error} ->

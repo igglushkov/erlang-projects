@@ -27,10 +27,7 @@ subscribe(ClientName, ServerName) ->
     end.
 
 add(ClientName, ServerName, EventName, Description, Timeout) ->
-    EventInfo = #event_info{
-        client_name = ClientName, event_name = EventName,
-        description = Description, timeout = Timeout},
-    ServerName ! {add, self(), EventInfo},
+    ServerName ! {add, self(), ClientName, EventName, Description, Timeout},
     receive
         {ok, EventPid, EventId} -> {ok, EventPid, EventId};
         {error, Reason} -> {error, Reason}
