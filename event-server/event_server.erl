@@ -45,8 +45,10 @@ loop(State) ->
                     event_name = EventName,
                     description = Description
                     }} ->
-                    NewDict = orddict:erase(Id, State#state.events_info),
-                    NewState = State#state{events_info = NewDict},
+                    NewEvInfo = orddict:erase(Id, State#state.events_info),
+                    NewEvProcs = orddict:erase(Id, State#state.events_procs),
+                    NewState = State#state{events_info = NewEvInfo,
+                                        events_procs = NewEvProcs},
                     ClientName ! {done, EventName, Description},
                     loop(NewState);
                 {error} ->
