@@ -30,7 +30,7 @@ loop(State) ->
                                     event_name = EventName,
                                     description = Description},
             EventId = State#state.current_id,
-            EventPid = event:start_link(EventId, Timeout),
+            {EventPid, ok} = event:start_link(EventId, Timeout),
             NewEvInfo = orddict:store(EventId, EventInfo, State#state.events_info),
             NewEvProcs = orddict:store(EventName, EventPid, State#state.events_procs),
             NewState = State#state{current_id = EventId + 1,
