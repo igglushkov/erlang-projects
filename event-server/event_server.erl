@@ -32,12 +32,27 @@ loop(State) ->
             EventId = State#state.current_id,
             {EventPid, ok} = event:start_link(EventId, Timeout),
             NewEvInfo = orddict:store(EventId, EventInfo, State#state.events_info),
-            NewEvProcs = orddict:store(EventName, EventPid, State#state.events_procs),
+            NewEvProcs = orddict:store(EventName, {EventId, EventPid}, State#state.events_procs),
             NewState = State#state{current_id = EventId + 1,
                                     events_info = NewEvInfo,
                                     events_procs = NewEvProcs},
             From ! {ok, EventPid, EventId},
             loop(NewState);
+        {cancel, From, ClientName, EventName} ->
+            case orddict:find(EventName, State#state.events_procs) of
+                {ok, {Id, Pid}} -> 
+                    Pid ! cancel,
+                    NewEvInfo = orddict:erase(Id, State#state.events_info),
+                    NewEvProcs = orddict:erase(EventName, State#state.events_procs),
+                    NewState = State#state{events_info = NewEvInfo,
+                                            events_procs = NewEvProcs},
+                    From ! ok,
+                    ClientName ! {canceled, EventName},
+                    loop(NewState);
+                _ -> 
+                    From ! {error, unknown_event}
+            end,
+            loop(State);
         {done, Id} ->
             case orddict:find(Id, State#state.events_info) of
                 {ok, #event_info{
