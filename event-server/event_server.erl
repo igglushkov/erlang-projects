@@ -66,7 +66,7 @@ loop(State) ->
                                         events_procs = NewEvProcs},
                     ClientName ! {done, EventName, Description},
                     loop(NewState);
-                {error} ->
+                error ->
                     io:format("Got unexpected event id: ~p~n", [Id]),
                     error
             end,
