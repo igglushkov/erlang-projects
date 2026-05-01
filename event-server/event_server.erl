@@ -36,6 +36,18 @@ loop(State) ->
                     loop(NewState)
             end,
             loop(State);
+        {unsubscribe, From, ClientName} ->
+            case lists:member(ClientName, State#state.clients) of
+                true ->
+                    NewClients = lists:delete(ClientName),
+                    NewState = State#state{clients = NewClients},
+                    %% TODO Demonitor process
+                    %% TODO Remove all events added by that client
+                    loop(NewState);
+                false ->
+                    From ! {error, unknwon_client}
+            end,
+            loop(State);
         {add, From, ClientName, EventName, Description, Timeout} ->
             case lists:member(ClientName, State#state.clients) of
                 true ->

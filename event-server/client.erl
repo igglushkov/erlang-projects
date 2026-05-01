@@ -2,7 +2,7 @@
 
 -include("include/event_info.hrl").
 
--export([start/1, init/0, subscribe/2, add/5, cancel/3, shutdown_server/1]).
+-export([start/1, init/0, subscribe/2, unsubscribe/2, add/5, cancel/3, shutdown_server/1]).
 
 -define(TIMEOUT, 2000).
 
@@ -18,6 +18,16 @@ subscribe(ClientName, ServerName) ->
     receive
         ok -> ok;
         {error, Reason} ->
+            {error, Reason}
+    after ?TIMEOUT ->
+        {error, timeout}
+    end.
+
+unsubscribe(ClientName, ServerName) ->
+    ServerName ! {unsubscribe , self(), ClientName},
+    receive 
+        ok -> ok;
+        {error , Reason} ->
             {error, Reason}
     after ?TIMEOUT ->
         {error, timeout}
@@ -62,6 +72,10 @@ loop() ->
         {subscribe, ServerName} ->
             MonitorRef = erlang:monitor(process, ServerName),
             io:format("client ~p now monitor procces ~p under ref ~p~n", [self(), ServerName, MonitorRef]),
+            loop();
+        {unsubscribed, ServerName} ->
+            %% TODO Demonitor the server
+            io:format("client ~p now unsubscribed from ~p~n", [self(), ServerName]),
             loop();
         {canceled, EventName} ->
             io:format("~p is canceled~n", [EventName]),
