@@ -57,7 +57,7 @@ init() ->
 loop() ->
     receive
         {done, EventName, Description} -> 
-            io:format("~p ~p is timeout~n", [EventName, Description]),
+            io:format("Client ~p : ~p ~p is timeout~n", [self(), EventName, Description]),
             loop();
         {subscribe, ServerName} ->
             MonitorRef = erlang:monitor(process, ServerName),
