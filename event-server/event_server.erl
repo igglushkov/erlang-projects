@@ -74,5 +74,8 @@ loop(State) ->
         {'DOWN', _Ref, process, Pid, Reason} ->
             io:format("Event Server: Client ~p terminated with reason ~p~n", [Pid, Reason]),
             loop(State);
-        stop -> ok
+        {shutdown, From} -> 
+            From ! ok,
+            io:format("Shutting down event server~n"),
+            exit(shutdown);
     end.

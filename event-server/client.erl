@@ -2,7 +2,7 @@
 
 -include("include/event_info.hrl").
 
--export([start/1, init/0, subscribe/2, add/5, cancel/3]).
+-export([start/1, init/0, subscribe/2, add/5, cancel/3, shutdown_server/1]).
 
 -define(TIMEOUT, 2000).
 
@@ -37,6 +37,15 @@ add(ClientName, ServerName, EventName, Description, Timeout) ->
 
 cancel(ClientName, ServerName, EventName) ->
     ServerName ! {cancel, self(), ClientName, EventName},
+    receive
+        ok -> ok;
+        _ -> error
+    after ?TIMEOUT ->
+        {error, timeout}
+    end.
+
+shutdown_server(ServerName) ->
+    ServerName ! {shutdown, self()},
     receive
         ok -> ok;
         _ -> error
