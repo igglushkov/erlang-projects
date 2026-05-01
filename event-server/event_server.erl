@@ -79,4 +79,6 @@ loop(State) ->
             From ! ok,
             io:format("Shutting down event server~n"),
             exit(shutdown);
+        _ -> 
+            loop(State) 
     end.
