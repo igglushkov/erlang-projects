@@ -16,10 +16,7 @@ start(Name) ->
 subscribe(ClientName, ServerName) ->
     ServerName ! {subscribe, self(), ClientName},
     receive
-        ok ->
-            MonitorRef = erlang:monitor(process, ServerName),
-            io:format("client now monitor procces ~p under ref ~p~n", [ServerName, MonitorRef]),
-            {ok, MonitorRef};
+        ok -> ok;
         {error, Reason} ->
             {error, Reason}
     after ?TIMEOUT ->
@@ -62,8 +59,15 @@ loop() ->
         {done, EventName, Description} -> 
             io:format("~p ~p is timeout~n", [EventName, Description]),
             loop();
+        {subscribe, ServerName} ->
+            MonitorRef = erlang:monitor(process, ServerName),
+            io:format("client ~p now monitor procces ~p under ref ~p~n", [self(), ServerName, MonitorRef]),
+            loop();
         {canceled, EventName} ->
             io:format("~p is canceled~n", [EventName]),
+            loop();
+        {'DOWN', _Ref, process, Pid, Reason} ->
+            io:format("Client: Event server ~p terminated with reason ~p~n", [Pid, Reason]),
             loop();
         _ -> loop()
     end.

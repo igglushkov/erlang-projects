@@ -23,6 +23,7 @@ loop(State) ->
         {subscribe, From, ClientName} -> 
             MonitorRef = erlang:monitor(process, ClientName),
             io:format("event server now monitor procces ~p under ref ~p~n", [ClientName, MonitorRef]),
+            ClientName ! {subscribe, self()},
             From ! ok,
             loop(State);
         {add, From, ClientName, EventName, Description, Timeout} ->
