@@ -39,12 +39,17 @@ loop(State) ->
             end,
             loop(State);
         {unsubscribe, From, ClientName} ->
-            case lists:member(ClientName, State#state.clients) of
+            case lists:keymember(ClientName, 1, State#state.clients) of
                 true ->
-                    NewClients = lists:delete(ClientName),
+                    MonitorRef = proplists:get_value(ClientName, State#state.clients),
+                    erlang:demonitor(MonitorRef),
+                    io:format("Event server: ~p demoniors ~p~n", [self(), ClientName]),
+                    NewClients = proplists:delete(ClientName, State#state.clients),
                     NewState = State#state{clients = NewClients},
-                    %% TODO Demonitor process
+
                     %% TODO Remove all events added by that client
+                    ClientName ! {unsubscribe, self()},
+                    From ! ok,
                     loop(NewState);
                 false ->
                     From ! {error, unknwon_client}
