@@ -1,5 +1,26 @@
+#cancel
+event_server:start().
+client:start(pc1).
+client:start(pc2).
+
+client:subscribe(pc1, event_server).
+client:subscribe(pc2, event_server).
+client:add(pc1, event_server, test1, "test timer", 60000).
+client:add(pc2, event_server, test2, "test timer", 60000).
+
+client:cancel(pc1, event_server, test2).
+client:cancel(pc2, event_server, test1).
+
+client:cancel(pc1, event_server, test1).
+client:cancel(pc2, event_server, test2).
+
+
+## unsubscribe
 event_server:start().
 client:start(pc).
 client:subscribe(pc, event_server).
-client:subscribe(pc, event_server).
-client:add(pc, event_server, test, "test timer", 3000).
+
+client:add(pc, event_server, test1, "test timer", 60000).
+client:add(pc, event_server, test2, "test timer", 60000).
+client:add(pc, event_server, test3, "test timer", 60000).
+client:unsubscribe(pc, event_server).
