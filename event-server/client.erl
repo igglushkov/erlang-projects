@@ -3,7 +3,9 @@
 -export([start/1, init/1, subscribe/2, unsubscribe/2, add/5, cancel/3, shutdown_server/1]).
 
 -define(TIMEOUT, 2000).
--record(state, {}).
+
+-record(state, {monitor_refs :: [{ServerName :: atom(), MonitorRef :: reference()}]}).
+
 start(Name) ->
     Pid = spawn(?MODULE, init, [#state{}]),
     register(Name, Pid),
@@ -69,7 +71,20 @@ loop(State) ->
             loop(State);
         {subscribe, ServerName} ->
             MonitorRef = erlang:monitor(process, ServerName),
+            NewMonitorRefs = [{ServerName, MonitorRef} | State#state.monitor_refs],
+            NewState = State#state{monitor_refs = NewMonitorRefs},
             io:format("client ~p now monitor procces ~p under ref ~p~n", [self(), ServerName, MonitorRef]),
+            loop(NewState);
+        {unsubscribe, ServerName} ->
+            case proplists:lookup(ServerName, State#state.monitor_refs) of
+                {ServerName, _MonitorRef} ->
+                    NewMonitorRefs = proplists:delete(ServerName, State#state.monitor_refs),
+                    NewState = State#state{monitor_refs = NewMonitorRefs},
+                    io:format("client ~p: Unsubscribed from ~p~n", [self(), ServerName]),
+                    loop(NewState);
+                none ->
+                    io:format("client ~p: Unknown ServerName: ~p~n", [self(), ServerName])
+            end,
             loop(State);
         {canceled, EventName} ->
             io:format("~p is canceled~n", [EventName]),
