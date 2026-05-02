@@ -5,6 +5,10 @@
 -export([start/0, init/1]).
 -record(state, {current_id :: integer(),
                 clients :: [{ClientName :: atom(), MonitorRef :: reference()}], 
+                events_info :: orddict:orddict(EventId :: atom(), EventInfo :: #event_info{}),
+                events_procs :: orddict:orrdict(EventName :: atom(), {ClientName :: atom(),
+                                                                      EventId :: integer(),
+                                                                      EventPid :: pid()})}).
 
 start() ->
     Pid = spawn(?MODULE, init, [#state{current_id = 0, 
