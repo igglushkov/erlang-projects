@@ -4,9 +4,7 @@
 
 -export([start/0, init/1]).
 -record(state, {current_id :: integer(),
-                clients :: [atom()], 
-                events_info :: orddict:orddict(),
-                events_procs :: orddict:orrdict()}).
+                clients :: [{ClientName :: atom(), MonitorRef :: reference()}], 
 
 start() ->
     Pid = spawn(?MODULE, init, [#state{current_id = 0, 
@@ -28,7 +26,7 @@ loop(State) ->
                     From ! {error, already_subscribed};
                 false ->
                     MonitorRef = erlang:monitor(process, ClientName),
-                    NewClients = [ClientName | State#state.clients],
+                    NewClients = [{ClientName, MonitorRef} | State#state.clients],
                     NewState = State#state{clients = NewClients},
                     io:format("event server now monitor procces ~p under ref ~p~n", [ClientName, MonitorRef]),
                     ClientName ! {subscribe, self()},
