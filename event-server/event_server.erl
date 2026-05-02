@@ -6,7 +6,7 @@
 -record(state, {current_id :: integer(),
                 clients :: [{ClientName :: atom(), MonitorRef :: reference()}], 
                 events_info :: orddict:orddict(EventId :: atom(), EventInfo :: #event_info{}),
-                events_procs :: orddict:orrdict(EventName :: atom(), {ClientName :: atom(),
+                events_procs :: orddict:orddict(EventName :: atom(), {ClientName :: atom(),
                                                                       EventId :: integer(),
                                                                       EventPid :: pid()})}).
 
