@@ -25,10 +25,10 @@ init(State) ->
 loop(State) ->
     receive
         {subscribe, From, ClientName} -> 
-            case lists:member(ClientName, State#state.clients) of
-                true ->
+            case proplists:lookup(ClientName, State#state.clients) of
+                {ClientName, _MonitorRef} ->
                     From ! {error, already_subscribed};
-                false ->
+                none ->
                     MonitorRef = erlang:monitor(process, ClientName),
                     NewClients = [{ClientName, MonitorRef} | State#state.clients],
                     NewState = State#state{clients = NewClients},
@@ -39,25 +39,40 @@ loop(State) ->
             end,
             loop(State);
         {unsubscribe, From, ClientName} ->
-            case lists:keymember(ClientName, 1, State#state.clients) of
-                true ->
+            case proplists:lookup(ClientName, State#state.clients) of
+                {ClientName, _MonitorRef} ->
                     MonitorRef = proplists:get_value(ClientName, State#state.clients),
                     erlang:demonitor(MonitorRef),
                     io:format("Event server: ~p demoniors ~p~n", [self(), ClientName]),
                     NewClients = proplists:delete(ClientName, State#state.clients),
-                    NewState = State#state{clients = NewClients},
 
-                    %% TODO Remove all events added by that client
+                    ClientEvents = orddict:filter(fun(_EventName, {CName, _EventId, _EventPid}) ->
+                        ClientName == CName end, State#state.events_procs),
+
+                    lists:foreach(fun({_EventName, {_CName, _EventId, EventPid}}) ->
+                        EventPid ! cancel end, ClientEvents),
+
+                    NewEvInfo = orddict:filter(fun(_EventId, #event_info{client_name = CName}) ->
+                        ClientName =/= CName end, State#state.events_info),
+
+                    NewEvProcs = orddict:filter(fun(_EventName, {CName, _, _}) ->
+                        ClientName =/= CName end, State#state.events_procs),
+                    
+
+                    NewState = State#state{clients = NewClients,
+                                            events_info = NewEvInfo,
+                                            events_procs = NewEvProcs},
+
                     ClientName ! {unsubscribe, self()},
                     From ! ok,
                     loop(NewState);
-                false ->
+                none ->
                     From ! {error, unknwon_client}
             end,
             loop(State);
         {add, From, ClientName, EventName, Description, Timeout} ->
-            case lists:member(ClientName, State#state.clients) of
-                true ->
+            case proplists:lookup(ClientName, State#state.clients) of
+                {ClientName, _MonitorRef} ->
                     EventInfo = #event_info{client_name = ClientName,
                                     event_name = EventName,
                                     description = Description},
@@ -70,7 +85,7 @@ loop(State) ->
                                             events_procs = NewEvProcs},
                     From ! {ok, EventPid, EventId},
                     loop(NewState);
-                false ->
+                none ->
                     From ! {error, unknown_client}
             end,
             loop(State);

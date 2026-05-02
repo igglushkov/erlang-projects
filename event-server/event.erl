@@ -8,7 +8,9 @@ start_link(Id, TimeOut) ->
 
 wait(ServerPid, Id, TimeOut) ->
     receive
-        cancel -> ok
+        cancel -> 
+            io:format("Event ~p was canceled by ~p~n", [self(), ServerPid]),
+            ok
     after TimeOut ->
         ServerPid ! {done, Id}
     end.
