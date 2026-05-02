@@ -1,13 +1,11 @@
 -module(client).
 
--include("include/event_info.hrl").
-
--export([start/1, init/0, subscribe/2, unsubscribe/2, add/5, cancel/3, shutdown_server/1]).
+-export([start/1, init/1, subscribe/2, unsubscribe/2, add/5, cancel/3, shutdown_server/1]).
 
 -define(TIMEOUT, 2000).
-
+-record(state, {}).
 start(Name) ->
-    Pid = spawn(?MODULE, init, []),
+    Pid = spawn(?MODULE, init, [#state{}]),
     register(Name, Pid),
     {ok, Name, Pid}.
 
@@ -60,28 +58,24 @@ shutdown_server(ServerName) ->
         {error, timeout}
     end.
 
-init() ->
-    loop(),
+init(State) ->
+    loop(State),
     ok.
 
-loop() ->
+loop(State) ->
     receive
         {done, EventName, Description} -> 
             io:format("Client ~p : ~p ~p is timeout~n", [self(), EventName, Description]),
-            loop();
+            loop(State);
         {subscribe, ServerName} ->
             MonitorRef = erlang:monitor(process, ServerName),
             io:format("client ~p now monitor procces ~p under ref ~p~n", [self(), ServerName, MonitorRef]),
-            loop();
-        {unsubscribed, ServerName} ->
-            %% TODO Demonitor the server
-            io:format("client ~p now unsubscribed from ~p~n", [self(), ServerName]),
-            loop();
+            loop(State);
         {canceled, EventName} ->
             io:format("~p is canceled~n", [EventName]),
-            loop();
+            loop(State);
         {'DOWN', _Ref, process, Pid, Reason} ->
             io:format("Client: Event server ~p terminated with reason ~p~n", [Pid, Reason]),
-            loop();
-        _ -> loop()
+            loop(State);
+        _ -> loop(State)
     end.
