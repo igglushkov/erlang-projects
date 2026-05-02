@@ -7,7 +7,7 @@
 -record(state, {monitor_refs :: [{ServerName :: atom(), MonitorRef :: reference()}]}).
 
 start(Name) ->
-    Pid = spawn(?MODULE, init, [#state{}]),
+    Pid = spawn(?MODULE, init, [#state{monitor_refs = []}]),
     register(Name, Pid),
     {ok, Name, Pid}.
 
