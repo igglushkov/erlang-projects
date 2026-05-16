@@ -15,8 +15,8 @@ add_device(#iot_device{} = Device) ->
     ets:insert(iotDeviceRam, Device),
     dets:insert(iotDeviceDisk, Device).
 
-lookup_device_id(DeviceId) ->
-    case ets:lookup(iotDeviceRam, DeviceId) of
+lookup_device(Id) ->
+    case ets:lookup(iotDeviceRam, Id) of
         [Device] -> {ok, Device};
         []       -> {error, instance}
     end.
