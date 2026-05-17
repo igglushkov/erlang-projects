@@ -1,6 +1,6 @@
 -module(iotserv_db).
 -include("iot_device.hrl").
--export([create_tables/1, close_tables/0, add_device/1, delete_device/1,
+-export([create_tables/1, close_tables/0, add_device/1, update_device/1, delete_device/1,
         lookup_device/1, restore_backup/0]).
 
 create_tables(FileName) ->
@@ -12,8 +12,12 @@ close_tables() ->
     dets:close(iotDeviceDisk).
 
 add_device(#iot_device{} = Device) ->
+    update_device(Device).
+
+update_device(#iot_device{} = Device) ->
     ets:insert(iotDeviceRam, Device),
-    dets:insert(iotDeviceDisk, Device).
+    dets:insert(iotDeviceDisk, Device),
+    ok.
 
 delete_device(Id) ->
     ets:delete(iotDeviceRam, Id),
