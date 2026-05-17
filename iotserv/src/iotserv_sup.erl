@@ -27,9 +27,10 @@ start_link() ->
 %%                  modules => modules()}   % optional
 init([]) ->
     SupFlags = #{strategy => one_for_all,
-                 intensity => 0,
+                 intensity => 1,
                  period => 1},
-    ChildSpecs = [],
-    {ok, {SupFlags, ChildSpecs}}.
+    IotServChild = {iotserv, {iotserv, start_link, []},
+                    permanent, 2000, worker, [iotserv, iotserv_db]},
+    {ok, {SupFlags, [IotServChild]}}.
 
 %% internal functions
