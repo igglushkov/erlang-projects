@@ -3,7 +3,8 @@
 -define(NAME, code_lock).
 
 -export([start_link/1]).
--export([button/1, verify/0]).
+-export([button/1, verify/0, clear/0]).
+-export([show/0]).
 -export([open/3, locked/3, suspended/3]).
 -export([init/1, callback_mode/0, terminate/3]).
 
@@ -17,6 +18,12 @@ button(Button) ->
 
 verify() ->
     gen_statem:cast(?NAME, verify).
+
+clear() ->
+    gen_statem:cast(?NAME, clear).
+
+show() ->
+    gen_statem:call(?NAME, show).
 
 init(Code) ->
     Data = #{code => Code, length => length(Code), attempts => 0, buttons => []},
@@ -39,6 +46,12 @@ locked(state_timeout, _OldState, _Data) ->
 
 locked(cast, {button, Button}, #{buttons := Buttons} = Data) ->
     {keep_state, Data#{buttons => Buttons ++ [Button]}};
+
+locked(cast, clear, Data) ->
+    {keep_state, Data#{buttons => []}};
+
+locked({call, From}, show, #{buttons := Buttons}) ->
+    {keep_state_and_data, [{reply, From, Buttons}]};
 
 locked(cast, verify, 
     #{code := Code, attempts := Attempts, buttons := Buttons} = Data) ->
