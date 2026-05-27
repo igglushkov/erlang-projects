@@ -3,7 +3,7 @@
 -define(NAME, code_lock).
 
 -export([start_link/1]).
--export([button/1, verify/0, clear/0, change/2, state/0]).
+-export([button/1, verify/0, clear/0, change/2, state/0, stop/0]).
 -export([show/0]).
 -export([open/3, locked/3, suspended/3]).
 -export([init/1, callback_mode/0, terminate/3]).
@@ -16,6 +16,9 @@ start_link(Code) when ?IS_VALID_CODE(Code) ->
 
 start_link(_Code) ->
     io:format("Incorrect code format or length~n").
+
+stop() ->
+    gen_statem:stop(?NAME).
 
 button(Button) ->
     gen_statem:cast(?NAME, {button, Button}).
