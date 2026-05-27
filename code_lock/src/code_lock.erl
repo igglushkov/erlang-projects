@@ -86,7 +86,8 @@ locked({call, From}, show, #{buttons := Buttons}) ->
     {keep_state_and_data, [{reply, From, Buttons}]};
 
 locked({call, From}, {change, _, _}, _Data) ->
-    {keep_state_and_data, [{reply, From, operation_is_forbidden}]};
+    Reply = {error, operation_is_forbidden},
+    {keep_state_and_data, [{reply, From, Reply}]};
 
 locked({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, locked}]}.
@@ -105,11 +106,13 @@ open(cast, {button, _}, _Data) ->
     keep_state_and_data;
 
 open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when OldCode =:= Code ->
+    Reply = {ok, code_changed},
     {keep_state, Data#{code => NewCode, length => length(NewCode)}, 
-                [{reply, From, code_changed}]};
+                [{reply, From, Reply}]};
 
 open({call, From}, {change, _OldCode, _NewCode}, _Data) ->
-    {keep_state_and_data, [{reply, From, incorrect_old_code}]};
+    Reply = {error, incorrect_old_code},
+    {keep_state_and_data, [{reply, From, Reply}]};
 
 open({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, open}]}.
@@ -129,7 +132,8 @@ suspended(cast, _EventData, _Data) ->
     keep_state_and_data;
 
 suspended({call, From}, {change, _, _}, _Data) ->
-    {keep_state_and_data, [{reply, From, operation_is_forbidden}]};
+    Reply = {error, operation_is_forbidden},
+    {keep_state_and_data, [{reply, From, Reply}]};
 
 suspended({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, suspended}]}.
