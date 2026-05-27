@@ -86,12 +86,12 @@ open(enter, locked, _Data) ->
 open(cast, {button, _}, _Data) ->
     keep_state_and_data;
 
-open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) ->
-    if OldCode =:= Code ->
-        {keep_state, Data#{code => NewCode, length => length(NewCode)}, [{reply, From, code_changed}]};
-    true ->
-        {keep_state, Data, [{reply, From, incorrect_old_code}]}
-    end;
+open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when OldCode =:= Code ->
+    {keep_state, Data#{code => NewCode, length => length(NewCode)}, 
+                [{reply, From, code_changed}]};
+
+open({call, From}, {change, _OldCode, _NewCode}, _Data) ->
+    {keep_state_and_data, [{reply, From, incorrect_old_code}]};
 
 open(state_timeout, lock, Data) ->
     {next_state, locked, Data}.
