@@ -3,7 +3,7 @@
 -define(NAME, code_lock).
 
 -export([start_link/1]).
--export([button/1, verify/0, clear/0, change/2, state/0, stop/0]).
+-export([button/1, verify/0, clear/0, change/2, state/0, max_attempts/0, stop/0]).
 -export([show/0]).
 -export([open/3, locked/3, suspended/3]).
 -export([init/1, callback_mode/0, terminate/3]).
@@ -19,6 +19,9 @@ start_link(_Code) ->
 
 stop() ->
     gen_statem:stop(?NAME).
+
+max_attempts() ->
+    ?MAX_ATTEMPTS.
 
 button(Button) ->
     gen_statem:cast(?NAME, {button, Button}).
