@@ -67,17 +67,14 @@ locked({call, From}, {change, _, _}, _Data) ->
     {keep_state_and_data, [{reply, From, operation_is_forbidden}]};
 
 locked(cast, verify, 
-    #{code := Code, attempts := Attempts, buttons := Buttons} = Data) ->
-    if Buttons == Code ->
-        {next_state, open, Data#{buttons => [], attempts => 0},
-        [{state_timeout, 10_000, lock}]};
-    true ->
-        if Attempts + 1 == ?MAX_ATTEMPTS ->
-            {next_state, suspended, Data, [{state_timeout, 10_000, lock}]};
-        true ->
-            {keep_state, Data#{attempts => Attempts + 1}}
-        end
-    end.
+    #{code := Code, buttons := Buttons} = Data) when Buttons =:= Code ->
+    {next_state, open, Data#{buttons => [], attempts => 0}, [{state_timeout, 10_000, lock}]};
+
+locked(cast, verify, #{attempts := Attempts} = Data) when Attempts + 1 == ?MAX_ATTEMPTS ->
+        {next_state, suspended, Data, [{state_timeout, 10_000, lock}]};
+
+locked(cast, verify, #{attempts := Attempts} = Data) ->
+    {keep_state, Data#{attempts => Attempts + 1}}.
 
 open(enter, locked, _Data) ->
     do_unlock(),
