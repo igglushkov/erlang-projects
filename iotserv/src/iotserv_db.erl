@@ -5,7 +5,8 @@
 
 create_tables(FileName) ->
     ets:new(iotDeviceRam, [named_table, {keypos, #iot_device.id}]),
-    dets:open_file(iotDeviceDisk, [{file, FileName}, {keypos, #iot_device.id}]).
+    dets:open_file(iotDeviceDisk, [{file, FileName}, {keypos, #iot_device.id}]),
+    restore_backup().
 
 close_tables() ->
     ets:delete(iotDeviceRam),

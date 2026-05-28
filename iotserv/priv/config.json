@@ -1,0 +1,5 @@
+{
+    "database" : {
+        "path" : "priv/data/iot_devices.dets"
+    }
+}

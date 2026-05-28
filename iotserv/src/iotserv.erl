@@ -1,5 +1,5 @@
 -module(iotserv).
--export([start_link/0, start_link/1, stop/0]).
+-export([start_link/0, stop/0]).
 -export([add/5, delete/1, lookup/1, change/3]).
 -export([init/1, terminate/2, handle_call/3, handle_cast/2]).
 -behaviour(gen_server).
@@ -13,10 +13,8 @@
 %% Operation & Maintenance API
 
 start_link() ->
-    start_link("IotDevicesDb").
-
-start_link(FileName) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, FileName, []).
+    FilePath = config_reader:read_config("priv/config.json"),
+    gen_server:start_link({local, ?MODULE}, ?MODULE, FilePath, []).
 
 stop() ->
     gen_server:cast(?MODULE, stop).
@@ -37,9 +35,8 @@ change(Id, Property, Value) when ?is_device_property(Property) ->
 
 %% Callback Functions
 
-init(FileName) ->
-    iotserv_db:create_tables(FileName),
-    iotserv_db:restore_backup(),
+init(FilePath) ->
+    iotserv_db:create_tables(FilePath),
     {ok, null}.
 
 terminate(_Reason, _State) ->
