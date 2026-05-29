@@ -10,6 +10,7 @@ create_tables(FileName) ->
 
 close_tables() ->
     ets:delete(iotDeviceRam),
+    dets:sync(iotDeviceDisk),
     dets:close(iotDeviceDisk).
 
 add_device(#iot_device{} = Device) ->
