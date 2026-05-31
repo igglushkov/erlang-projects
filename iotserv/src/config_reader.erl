@@ -9,13 +9,13 @@ read_config(FileName) ->
                     #{<<"database">> := DbConf} = ConfigJson,
                     binary_to_list(db_conf_path(DbConf))
             catch
-                _ : Error ->
+                _:Error ->
                     io:format("JSON parse error: ~p~n", [Error]),
                     {error, invalid_json}
             end;
         {error, Reason} ->
             io:format("Error on file read: ~p~n", [Reason]),
             {error, file_read_error}
-        end.
+    end.
 
 db_conf_path(#{<<"path">> := Path}) -> Path.
