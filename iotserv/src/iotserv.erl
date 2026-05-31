@@ -6,9 +6,6 @@
 
 -include("iot_device.hrl").
 
--define(is_device_property(P), 
-            P == name; P == address; P == tempature; P == indicators).
-
 %% Exported Client Functions
 %% Operation & Maintenance API
 
