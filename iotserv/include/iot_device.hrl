@@ -9,13 +9,16 @@
 
 -type dev_property() :: name | address | tempature | indicators.
 
--define(is_device_property(P), 
-            P == name; P == address; P == tempature; P == indicators).
+-define(is_device_property(P),
+    P == name; P == address; P == tempature; P == indicators
+).
 
 %% @doc iot_device definition
 
--record(iot_device, {id :: id(), 
-                    name :: name(),
-                    address :: address(),
-                    tempature :: tempature(),
-                    indicators :: indicators()}).
+-record(iot_device, {
+    id :: id(),
+    name :: name(),
+    address :: address(),
+    tempature :: tempature(),
+    indicators :: indicators()
+}).
