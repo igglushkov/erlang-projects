@@ -18,8 +18,7 @@ add_device(#iot_device{} = Device) ->
 
 update_device(#iot_device{} = Device) ->
     ets:insert(iotDeviceRam, Device),
-    dets:insert(iotDeviceDisk, Device),
-    ok.
+    dets:insert(iotDeviceDisk, Device).
 
 delete_device(Id) ->
     ets:delete(iotDeviceRam, Id),
