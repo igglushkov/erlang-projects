@@ -30,7 +30,7 @@ init([]) ->
                  intensity => 1,
                  period => 1},
     IotServChild = {iotserv, {iotserv, start_link, []},
-                    permanent, 2000, worker, [iotserv, iotserv_db]},
+                    transient, 2000, worker, [iotserv, iotserv_db]},
     {ok, {SupFlags, [IotServChild]}}.
 
 %% internal functions
