@@ -29,8 +29,10 @@ init([]) ->
     SupFlags = #{
         strategy => one_for_one,
         intensity => 1,
-        period => 1
+        period => 3
     },
+    IotServChild =
+        {iotserv, {iotserv, start_link, []}, transient, 5000, worker, [iotserv, iotserv_db]},
     {ok, {SupFlags, [IotServChild]}}.
 
 %% internal functions
