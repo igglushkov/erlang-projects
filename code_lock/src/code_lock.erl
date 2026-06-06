@@ -69,34 +69,28 @@ terminate(_Reason, State, _Data) ->
 locked(enter, _OldState, _Data) ->
     do_lock(),
     keep_state_and_data;
-
 locked(state_timeout, _OldState, _Data) ->
     do_lock(),
     keep_state_and_data;
-
 locked(cast, {button, Button}, #{buttons := Buttons} = Data) ->
     {keep_state, Data#{buttons => Buttons ++ [Button]}};
-
 locked(cast, clear, Data) ->
     {keep_state, Data#{buttons => []}};
-
-locked(cast, verify, 
-    #{code := Code, buttons := Buttons} = Data) when Buttons =:= Code ->
+locked(
+    cast,
+    verify,
+    #{code := Code, buttons := Buttons} = Data
+) when Buttons =:= Code ->
     {next_state, open, Data#{buttons => [], attempts => 0}, [{state_timeout, 10_000, lock}]};
-
 locked(cast, verify, #{attempts := Attempts} = Data) when Attempts + 1 == ?MAX_ATTEMPTS ->
-        {next_state, suspended, Data, [{state_timeout, 10_000, lock}]};
-
+    {next_state, suspended, Data, [{state_timeout, 10_000, lock}]};
 locked(cast, verify, #{attempts := Attempts} = Data) ->
     {keep_state, Data#{attempts => Attempts + 1}};
-
 locked({call, From}, show, #{buttons := Buttons}) ->
     {keep_state_and_data, [{reply, From, Buttons}]};
-
 locked({call, From}, {change, _, _}, _Data) ->
     Reply = {error, operation_is_forbidden},
     {keep_state_and_data, [{reply, From, Reply}]};
-
 locked({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, locked}]}.
 
@@ -106,10 +100,8 @@ locked({call, From}, state, _Data) ->
 open(enter, locked, _Data) ->
     do_unlock(),
     keep_state_and_data;
-
 open(state_timeout, lock, Data) ->
     {next_state, locked, Data};
-
 open(cast, {button, _}, _Data) ->
     keep_state_and_data;
 open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when
@@ -120,7 +112,6 @@ open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when
 open({call, From}, {change, _OldCode, _NewCode}, _Data) ->
     Reply = {error, incorrect_code_format},
     {keep_state_and_data, [{reply, From, Reply}]};
-
 open({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, open}]}.
 
@@ -130,18 +121,14 @@ open({call, From}, state, _Data) ->
 suspended(enter, locked, _Data) ->
     do_suspend(),
     keep_state_and_data;
-
 suspended(state_timeout, lock, Data) ->
     {next_state, locked, Data#{buttons => [], attempts => 0}};
-
 suspended(cast, _EventData, _Data) ->
     io:format("In suspeneded mode~n"),
     keep_state_and_data;
-
 suspended({call, From}, {change, _, _}, _Data) ->
     Reply = {error, operation_is_forbidden},
     {keep_state_and_data, [{reply, From, Reply}]};
-
 suspended({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, suspended}]}.
 
