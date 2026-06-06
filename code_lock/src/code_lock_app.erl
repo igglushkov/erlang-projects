@@ -10,7 +10,8 @@
 -export([start/2, stop/1]).
 
 start(_StartType, _StartArgs) ->
-    code_lock_sup:start_link().
+    {ok, Code} = application:get_env(code),
+    code_lock_sup:start_link(Code).
 
 stop(_State) ->
     ok.

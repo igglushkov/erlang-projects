@@ -9,13 +9,18 @@
 -export([init/1, callback_mode/0, terminate/3]).
 
 -define(MAX_ATTEMPTS, 3).
--define(IS_VALID_CODE(Code), is_list(Code), length(Code) > 0).
 
-start_link(Code) when ?IS_VALID_CODE(Code) ->
-    gen_statem:start_link({local, ?NAME}, ?MODULE, Code, []);
+-define(IS_DIGIT(D), is_integer(D), D >= 0, D =< 9).
+-define(IS_VALID_CODE(Code), is_list(Code), Code =/= [], ?IS_DIGIT(hd(Code))).
 
-start_link(_Code) ->
-    io:format("Incorrect code format or length~n").
+-type code() :: [integer()].
+
+%% @doc Starts state machine with the given code.
+
+-spec start_link(Code :: code()) -> {ok, Pid :: pid()} | {error, _Reason}.
+
+start_link(Code) ->
+    gen_statem:start_link({local, ?NAME}, ?MODULE, Code, []).
 
 stop() ->
     gen_statem:stop(?NAME).
@@ -44,9 +49,11 @@ show() ->
 state() ->
     gen_statem:call(?NAME, state).
 
-init(Code) ->
+init(Code) when ?IS_VALID_CODE(Code) ->
     Data = #{code => Code, length => length(Code), attempts => 0, buttons => []},
-    {ok, locked, Data}.
+    {ok, locked, Data};
+init(Code) ->
+    {stop, invalid_code_format, Code}.
 
 callback_mode() ->
     [state_functions, state_enter].
