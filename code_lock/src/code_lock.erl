@@ -31,11 +31,12 @@ max_attempts() ->
 button(Button) ->
     gen_statem:cast(?NAME, {button, Button}).
 
-change(OldCode, NewCode) when ?IS_VALID_CODE(OldCode), ?IS_VALID_CODE(NewCode) ->
-    gen_statem:call(?NAME, {change, OldCode, NewCode});
+%% @doc Change code. Works if OldCode is correct and code lock is opened.
 
-change(_OldCode, _NewCode) ->
-    io:format("Invalid code format or length~n").
+-spec change(OldCode :: code(), NewCode :: code()) -> ok.
+
+change(OldCode, NewCode) ->
+    gen_statem:call(?NAME, {change, OldCode, NewCode}).
 
 verify() ->
     gen_statem:cast(?NAME, verify).
@@ -111,14 +112,13 @@ open(state_timeout, lock, Data) ->
 
 open(cast, {button, _}, _Data) ->
     keep_state_and_data;
-
-open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when OldCode =:= Code ->
+open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when
+    OldCode =:= Code, ?IS_VALID_CODE(NewCode)
+->
     Reply = {ok, code_changed},
-    {keep_state, Data#{code => NewCode, length => length(NewCode)}, 
-                [{reply, From, Reply}]};
-
+    {keep_state, Data#{code => NewCode, length => length(NewCode)}, [{reply, From, Reply}]};
 open({call, From}, {change, _OldCode, _NewCode}, _Data) ->
-    Reply = {error, incorrect_old_code},
+    Reply = {error, incorrect_code_format},
     {keep_state_and_data, [{reply, From, Reply}]};
 
 open({call, From}, state, _Data) ->
