@@ -51,7 +51,7 @@ state() ->
     gen_statem:call(?NAME, state).
 
 init(Code) when ?IS_VALID_CODE(Code) ->
-    Data = #{code => Code, length => length(Code), attempts => 0, buttons => []},
+    Data = #{code => Code, attempts => 0, buttons => []},
     {ok, locked, Data};
 init(Code) ->
     {stop, invalid_code_format, Code}.
@@ -108,7 +108,7 @@ open({call, From}, {change, OldCode, NewCode}, #{code := Code} = Data) when
     OldCode =:= Code, ?IS_VALID_CODE(NewCode)
 ->
     Reply = {ok, code_changed},
-    {keep_state, Data#{code => NewCode, length => length(NewCode)}, [{reply, From, Reply}]};
+    {keep_state, Data#{code => NewCode}, [{reply, From, Reply}]};
 open({call, From}, {change, _OldCode, _NewCode}, _Data) ->
     Reply = {error, incorrect_code_format},
     {keep_state_and_data, [{reply, From, Reply}]};
