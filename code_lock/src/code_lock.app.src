@@ -1,15 +1,15 @@
-{application, code_lock,
- [{description, "An OTP application"},
-  {vsn, "0.1.0"},
-  {registered, []},
-  {mod, {code_lock_app, []}},
-  {applications,
-   [kernel,
-    stdlib
-   ]},
-  {env,[{code, [1, 2, 3]}]},
-  {modules, []},
+{application, code_lock, [
+    {description, "An OTP application"},
+    {vsn, "0.1.0"},
+    {registered, []},
+    {mod, {code_lock_app, []}},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {env, [{code, [1, 2, 3]}]},
+    {modules, []},
 
-  {licenses, ["Apache-2.0"]},
-  {links, []}
- ]}.
+    {licenses, ["Apache-2.0"]},
+    {links, []}
+]}.
