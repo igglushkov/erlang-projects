@@ -1,3 +1,6 @@
+%% @doc Module provides implementation of state machine for code lock
+%% and client API functions for working with it.
+
 -module(code_lock).
 -behaviour(gen_statem).
 -define(NAME, code_lock).
@@ -15,40 +18,53 @@
 
 -type code() :: [integer()].
 
-%% @doc Starts state machine with the given code.
+%% @doc Start the code lock state machine with the given code.
 
 -spec start_link(Code :: code()) -> {ok, Pid :: pid()} | {error, _Reason}.
 
 start_link(Code) ->
     gen_statem:start_link({local, ?NAME}, ?MODULE, Code, []).
 
+%% @doc Shutdown code lock.
 stop() ->
     gen_statem:stop(?NAME).
+
+%% @doc Max attempts for code verification before suspending.
 
 max_attempts() ->
     ?MAX_ATTEMPTS.
 
+%% @doc Press the code lock button.
+
+-spec button(Button :: integer()) -> ok.
+
 button(Button) ->
     gen_statem:cast(?NAME, {button, Button}).
 
-%% @doc Change code. Works if OldCode is correct and code lock is opened.
+%% @doc Change code. Works if <code>OldCode</code> is correct and code lock is opened.
 
 -spec change(OldCode :: code(), NewCode :: code()) -> ok.
 
 change(OldCode, NewCode) ->
     gen_statem:call(?NAME, {change, OldCode, NewCode}).
 
+%% @doc Verify typed code.
 verify() ->
     gen_statem:cast(?NAME, verify).
 
+%% @doc Clear typed code.
 clear() ->
     gen_statem:cast(?NAME, clear).
 
+%% @doc Show typed code.
 show() ->
     gen_statem:call(?NAME, show).
 
+%% @doc Get current code lock state.
 state() ->
     gen_statem:call(?NAME, state).
+
+%% @private Init code lock.
 
 init(Code) when ?IS_VALID_CODE(Code) ->
     Data = #{code => Code, attempts => 0, buttons => []},
@@ -56,16 +72,18 @@ init(Code) when ?IS_VALID_CODE(Code) ->
 init(Code) ->
     {stop, invalid_code_format, Code}.
 
+%% @private
 callback_mode() ->
     [state_functions, state_enter].
 
+%% @private
 terminate(_Reason, State, _Data) ->
     State =/= locked andalso do_lock(),
     ok.
 
 %%
 %% locked state
-
+%% @private
 locked(enter, _OldState, _Data) ->
     do_lock(),
     keep_state_and_data;
@@ -96,7 +114,7 @@ locked({call, From}, state, _Data) ->
 
 %%
 %% open state
-
+%% @private
 open(enter, locked, _Data) ->
     do_unlock(),
     keep_state_and_data;
@@ -117,7 +135,7 @@ open({call, From}, state, _Data) ->
 
 %%
 %% suspended state
-
+%% @private
 suspended(enter, locked, _Data) ->
     do_suspend(),
     keep_state_and_data;
@@ -132,11 +150,12 @@ suspended({call, From}, {change, _, _}, _Data) ->
 suspended({call, From}, state, _Data) ->
     {keep_state_and_data, [{reply, From, suspended}]}.
 
+%% @private
 do_suspend() ->
     io:format("Suspended~n").
-
+%% @private
 do_unlock() ->
     io:format("Unlocked~n").
-
+%% @private
 do_lock() ->
     io:format("Locked~n").

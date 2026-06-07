@@ -25,6 +25,8 @@ start_link(Code) ->
 %%                  shutdown => shutdown(), % optional
 %%                  type => worker(),       % optional
 %%                  modules => modules()}   % optional
+
+%% @private
 init(Code) ->
     SupFlags = #{
         strategy => one_for_one,
