@@ -101,7 +101,7 @@ locked(
 ) when Buttons =:= Code ->
     {next_state, open, Data#{buttons => [], attempts => 0}, [{state_timeout, 10_000, lock}]};
 locked(cast, verify, #{attempts := Attempts} = Data) when Attempts + 1 == ?MAX_ATTEMPTS ->
-    {next_state, suspended, Data, [{state_timeout, 10_000, lock}]};
+    {next_state, suspended, Data, [{state_timeout, 20_000, lock}]};
 locked(cast, verify, #{attempts := Attempts} = Data) ->
     {keep_state, Data#{attempts => Attempts + 1}};
 locked({call, From}, show, #{buttons := Buttons}) ->
